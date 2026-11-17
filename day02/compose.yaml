@@ -1,0 +1,28 @@
+services:
+  web:
+    build: ./app
+    image: hello-app:0.5
+    ports:
+      - "8080:5000"
+    environment:
+      DATABASE_URL: postgresql://hello:${POSTGRES_PASSWORD}@db:5432/hello
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: hello
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: hello
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hello -d hello"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  db-data:
